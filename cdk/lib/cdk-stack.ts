@@ -7,11 +7,17 @@ export class CartStack extends cdk.Stack {
   constructor(scope: any, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    const layer = new lambda.LayerVersion(this, 'NestJSLayer', {
+      code: lambda.Code.fromAsset(path.resolve(__dirname, '../../layer/layer.zip')),
+      compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
+    });
+
     const lambdaFunction = new lambda.Function(this, 'CartLambda', {
-      runtime: lambda.Runtime.NODEJS_14_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.resolve(__dirname, '../../dist/src/')),
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'main.handler',
+      code: lambda.Code.fromAsset(path.resolve(__dirname, '../../dist/src')),
       memorySize: 1024,
+      layers: [layer],
     });
 
     const api = new apigateway.LambdaRestApi(this, 'CartApi', {

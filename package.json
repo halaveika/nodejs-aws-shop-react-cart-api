@@ -19,15 +19,21 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "deploy": "npm run build && cdk deploy --profile aws-rs"
+    "layer:install": "npm install  --prefix ./layer/",
+    "zip-directory": "ts-node ./utils/zip-directory.ts",
+    "stack:install": "npm install  --prefix ./cdk/",
+    "stack:build": "npm run build  --prefix cdk",
+    "stack:deploy": "npm run deploy  --prefix cdk",
+    "deploy": "npm run build && npm run layer:install && npm run zip-directory && npm run stack:install && npm run stack:build && npm run stack:deploy"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.3",
     "@nestjs/config": "^3.0.0",
-    "@nestjs/core": "^10.0.3",
+    "@nestjs/core": "^10.0.5",
     "@nestjs/jwt": "^10.1.0",
     "@nestjs/passport": "^10.0.0",
     "@nestjs/platform-express": "^10.0.3",
+    "archiver": "^5.3.1",
     "aws-lambda": "^1.0.7",
     "helmet": "^7.0.0",
     "passport": "^0.6.0",
@@ -60,7 +66,7 @@
     "supertest": "^6.3.3",
     "ts-jest": "29.1.0",
     "ts-loader": "^9.4.3",
-    "ts-node": "10.9.1",
+    "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.1.3"
   },
