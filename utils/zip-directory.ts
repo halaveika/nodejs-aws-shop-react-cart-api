@@ -18,7 +18,7 @@ function zipDirectory(sourceDir: string, outputZip: string): Promise<void> {
     });
 
     archive.pipe(output);
-    archive.directory(sourceDir, 'nodejs' );
+    archive.directory(sourceDir, 'nodejs/node_modules' );
     archive.finalize();
   });
 }
