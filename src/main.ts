@@ -1,49 +1,39 @@
 import { NestFactory } from '@nestjs/core';
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import helmet from 'helmet';
-import * as express from 'express';
+import { Context, APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { AppModule } from './app.module';
 
+let cachedApp: any;
+
 async function bootstrap(): Promise<any> {
-  const expressApp = express();
-  const app = await NestFactory.create(
-    AppModule,
-    new ExpressAdapter(expressApp),
-  );
-
-  app.enableCors({
-    origin: (req, callback) => callback(null, true),
-  });
-  app.use(helmet());
-
-  await app.init();
-
-  return expressApp;
+  if (!cachedApp) {
+    const app = await NestFactory.create(AppModule);
+    await app.init();
+    cachedApp = app.getHttpAdapter().getInstance();
+  }
+  return cachedApp;
 }
 
 export const handler = async (
   event: APIGatewayProxyEvent,
-  context: any
+  context: Context
 ): Promise<APIGatewayProxyResult> => {
   const app = await bootstrap();
+  const proxyEvent = {
+    ...event,
+    requestContext: {
+      ...event.requestContext,
+      requestId: context.awsRequestId,
+    },
+  };
 
   const result = await new Promise<APIGatewayProxyResult>((resolve, reject) => {
-    const proxyEvent = {
-      ...event,
-      requestContext: {
-        ...event.requestContext,
-        requestId: context.awsRequestId,
-      },
-    };
-
     app.handle(proxyEvent, null, (err: any, response: any) => {
       if (err) {
         reject(err);
       } else {
-        const statusCode = response?.statusCode ?? 500;
-        const body = response?.body ?? '';
-        const headers = response?.headers ?? {};
+        const statusCode = response?.statusCode;
+        const body = response?.body;
+        const headers = response?.headers;
 
         resolve({
           statusCode,

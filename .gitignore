@@ -39,3 +39,4 @@ lerna-debug.log*
 
 */node_modules
 /layer/*.zip
+.env
