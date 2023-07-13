@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
+import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import * as path from 'path';
 
 export class CartStack extends cdk.Stack {
@@ -31,17 +32,18 @@ export class CartStack extends cdk.Stack {
       layers: [layer],
     });
 
-    const api = new apigateway.RestApi(this, 'CartApi', {
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
+    const api = new apiGateway.HttpApi(this, 'CartApi', {
+      corsPreflight: {
+        allowHeaders: ['*'],
+        allowOrigins: ['*'],
+        allowMethods: [apiGateway.CorsHttpMethod.ANY],
       },
     });
-
-    const defaultIntegration = new apigateway.LambdaIntegration(lambdaFunction);
-
-    api.root.addMethod('ANY', defaultIntegration, {
-      authorizationType: apigateway.AuthorizationType.NONE,
+    
+    api.addRoutes({
+      integration: new HttpLambdaIntegration('CartApiIntegration', lambdaFunction),
+      path: '/{proxy+}',
+      methods: [apiGateway.HttpMethod.GET],
     });
 
     new cdk.CfnOutput(this, 'CartApiEndpoint', {

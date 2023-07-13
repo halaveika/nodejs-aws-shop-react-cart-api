@@ -5,7 +5,7 @@ import { v4 } from 'uuid';
 import { Cart } from '../models';
 
 @Injectable()
-export class CartService {
+export class CartMockService {
   private userCarts: Record<string, Cart> = {};
 
   findByUserId(userId: string): Cart {

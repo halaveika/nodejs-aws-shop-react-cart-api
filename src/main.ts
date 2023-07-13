@@ -8,7 +8,7 @@ async function bootstrap(): Promise<any> {
   if (!cachedApp) {
     const app = await NestFactory.create(AppModule);
     await app.init();
-    cachedApp = app.getHttpAdapter().getInstance();
+    cachedApp = app;
   }
   return cachedApp;
 }
@@ -26,23 +26,21 @@ export const handler = async (
     },
   };
 
-  const result = await new Promise<APIGatewayProxyResult>((resolve, reject) => {
-    app.handle(proxyEvent, null, (err: any, response: any) => {
+  const expressApp = app.getHttpAdapter().getInstance();
+  const response = await new Promise<any>((resolve, reject) => {
+    expressApp(proxyEvent, {} as any, (err: any, result: any) => {
       if (err) {
         reject(err);
       } else {
-        const statusCode = response?.statusCode;
-        const body = response?.body;
-        const headers = response?.headers;
-
-        resolve({
-          statusCode,
-          body,
-          headers,
-        });
+        resolve(result);
       }
     });
   });
 
-  return result;
+  return {
+    statusCode: response.statusCode,
+    body: response.body,
+    headers: response.headers,
+    isBase64Encoded: response.isBase64Encoded || false,
+  };
 };

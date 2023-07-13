@@ -21,7 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "layer:install": "npm install  --prefix ./layer/",
     "zip-directory": "ts-node ./utils/zip-directory.ts",
-    "stack:install": "npm install  --prefix ./cdk/",
+    "stack:install": "npm install --force  --prefix ./cdk/",
     "stack:build": "npm run build  --prefix cdk",
     "stack:deploy": "npm run deploy  --prefix cdk",
     "deploy": "npm run build && npm run layer:install && npm run zip-directory && npm run stack:install && npm run stack:build && npm run stack:deploy"
