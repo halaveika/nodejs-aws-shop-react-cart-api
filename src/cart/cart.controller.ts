@@ -13,11 +13,13 @@ export class CartController {
   ) { }
 
   // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Get()
   async findUserCart(@Req() req: AppRequest) {
+    console.log('findUserCart');
+    console.log('req',req);
     const cart = await this.cartService.findOrCreateByUserId(getUserIdFromRequest(req));
-
+    console.log('cart',cart);
     return {
       statusCode: HttpStatus.OK,
       message: 'OK',
@@ -26,7 +28,7 @@ export class CartController {
   }
 
   // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Put()
   async updateUserCart(@Req() req: AppRequest, @Body() body) { // TODO: validate body payload...
     const cart = await this.cartService.updateByUserId(getUserIdFromRequest(req), body)
@@ -42,7 +44,7 @@ export class CartController {
   }
 
   // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Delete()
   async clearUserCart(@Req() req: AppRequest) {
     await this.cartService.removeByUserId(getUserIdFromRequest(req));
@@ -54,7 +56,7 @@ export class CartController {
   }
 
   // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Post('checkout')
   async checkout(@Req() req: AppRequest, @Body() body) {
     const userId = getUserIdFromRequest(req);
