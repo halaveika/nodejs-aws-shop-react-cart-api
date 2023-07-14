@@ -4,12 +4,14 @@ import { OrderService } from '../order';
 import { AppRequest, getUserIdFromRequest } from '../shared';
 import { calculateCartTotal } from './models-rules';
 import { CartService } from './services';
+import { UsersService } from 'src/users';
 
 @Controller('api/profile/cart')
 export class CartController {
   constructor(
     private cartService: CartService,
-    private orderService: OrderService
+    private orderService: OrderService,
+    private usersService: UsersService,
   ) { }
 
   // @UseGuards(JwtAuthGuard)
@@ -18,7 +20,14 @@ export class CartController {
   async findUserCart(@Req() req: AppRequest) {
     console.log('findUserCart');
     console.log('req',req);
-    const cart = await this.cartService.findOrCreateByUserId(getUserIdFromRequest(req));
+    const user = await this.usersService.findOneByName(getUserIdFromRequest(req));
+    if(!user) {
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'user not found',
+      }
+    }
+    const cart = await this.cartService.findOrCreateByUserId(user?.name);
     console.log('cart',cart);
     return {
       statusCode: HttpStatus.OK,

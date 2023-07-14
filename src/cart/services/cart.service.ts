@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Client } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
-import { Cart } from '../models';
+import { Cart, CartItem } from '../models';
 
 @Injectable()
 export class CartService {
@@ -20,85 +20,97 @@ export class CartService {
   }
 
   async findByUserId(userId: string): Promise<Cart | null> {
-    const query = `
-      SELECT id, items
-      FROM carts
-      WHERE user_id = $1;
-    `;
+    console.log('findByUserId', userId)
+    const query = 'SELECT * FROM carts WHERE user_id = $1';
     const values = [userId];
 
     try {
-      const { rows } = await this.client.query(query, values);
+      const result = await this.client.query(query, values);
+      const cart = result.rows[0];
 
-      if (rows.length === 0) {
-        return null;
+      if (cart) {
+        const cartItems = await this.getCartItems(cart.id);
+        cart.items = cartItems;
       }
 
-      const { id, items } = rows[0];
-
-      return { id, items };
+      return cart || null;
     } catch (error) {
-      throw new Error(`Error retrieving cart for user ${userId}: ${error}`);
+      console.error('Error retrieving cart:', error);
+      return null;
     }
   }
 
   async createByUserId(userId: string): Promise<Cart> {
-    const id = uuidv4();
-    const query = `
-      INSERT INTO carts (id, user_id, items)
-      VALUES ($1, $2, $3);
-    `;
-    const values = [id, userId, []];
+    const cartId = uuidv4();
+    const createdAt = new Date();
+    const updatedAt = createdAt;
+    const status = 'OPEN';
+
+    const query = 'INSERT INTO carts (id, user_id, created_at, updated_at, status) VALUES ($1, $2, $3, $4, $5)';
+    const values = [cartId, userId, createdAt, updatedAt, status];
 
     try {
       await this.client.query(query, values);
-
-      return { id, items: [] };
+      return { id: cartId, items: [] };
     } catch (error) {
-      throw new Error(`Error creating cart for user ${userId}: ${error}`);
+      console.error('Error creating cart:', error);
+      throw error;
     }
   }
 
   async findOrCreateByUserId(userId: string): Promise<Cart> {
-    const cart = await this.findByUserId(userId);
+    const existingCart = await this.findByUserId(userId);
 
-    if (cart) {
-      return cart;
+    if (existingCart) {
+      return existingCart;
     }
 
     return this.createByUserId(userId);
   }
 
-  async updateByUserId(userId: string, { items }: Cart): Promise<Cart> {
-    const cart = await this.findOrCreateByUserId(userId);
+  async updateByUserId(userId: string, updatedCart: Cart): Promise<Cart | null> {
+    const existingCart = await this.findByUserId(userId);
 
-    const query = `
-      UPDATE carts
-      SET items = $1
-      WHERE id = $2;
-    `;
-    const values = [items, cart.id];
+    if (!existingCart) {
+      return null;
+    }
+
+    const { id, ...rest } = updatedCart;
+    const updatedAt = new Date();
+    const query = 'UPDATE carts SET updated_at = $1 WHERE id = $2';
+    const values = [updatedAt, id];
 
     try {
       await this.client.query(query, values);
-
-      return { ...cart, items: [...items] };
+      return { id, ...rest };
     } catch (error) {
-      throw new Error(`Error updating cart for user ${userId}: ${error}`);
+      console.error('Error updating cart:', error);
+      return null;
     }
   }
 
   async removeByUserId(userId: string): Promise<void> {
-    const query = `
-      DELETE FROM carts
-      WHERE user_id = $1;
-    `;
+    const query = 'DELETE FROM carts WHERE user_id = $1';
     const values = [userId];
 
     try {
       await this.client.query(query, values);
     } catch (error) {
-      throw new Error(`Error removing cart for user ${userId}: ${error}`);
+      console.error('Error removing cart:', error);
+      throw error;
+    }
+  }
+
+  async getCartItems(cartId: string): Promise<CartItem[]> {
+    const query = 'SELECT * FROM cart_items WHERE cart_id = $1';
+    const values = [cartId];
+
+    try {
+      const result = await this.client.query(query, values);
+      return result.rows;
+    } catch (error) {
+      console.error('Error retrieving cart items:', error);
+      return [];
     }
   }
 }

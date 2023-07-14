@@ -1,28 +1,56 @@
 import { Injectable } from '@nestjs/common';
-
+import { Client } from 'pg';
 import { v4 } from 'uuid';
-
 import { User } from '../models';
 
 @Injectable()
 export class UsersService {
-  private readonly users: Record<string, User>;
+  private readonly client: Client;
 
   constructor() {
-    this.users = {}
+    this.client = new Client({
+      user: process.env.PG_DB_USER || '',
+      host: process.env.PG_DB_HOST || '',
+      database: process.env.PG_DB_DATABASE || '',
+      password: process.env.PG_DB_PASSWORD || '',
+      port: process.env.PG_DB_PORT ? parseInt(process.env.PG_DB_PORT) : 5432,
+    });
+
+    this.client.connect();
   }
 
-  findOne(userId: string): User {
-    return this.users[ userId ];
+  async findOne(userId: string): Promise<User> {
+    const query = 'SELECT * FROM users WHERE id = $1';
+    const values = [userId];
+    const result = await this.client.query(query, values);
+
+    if (result.rows.length > 0) {
+      return result.rows[0];
+    }
+
+    return null;
   }
 
-  createOne({ name, password }: User): User {
+  async findOneByName(name: string): Promise<User> {
+    const query = 'SELECT * FROM users WHERE name = $1';
+    const values = [name];
+    const result = await this.client.query(query, values);
+
+    if (result.rows.length > 0) {
+      console.log('findOneByName',result.rows[0]);
+      return result.rows[0];
+    }
+
+    return null;
+  }
+
+  async createOne({ name, password }: User): Promise<User> {
     const id = v4();
-    const newUser = { id: name || id, name, password };
+    const query = 'INSERT INTO users (id, name, password) VALUES ($1, $2, $3)';
+    const values = [id, name, password];
+    await this.client.query(query, values);
 
-    this.users[ id ] = newUser;
-
+    const newUser: User = { id, name, password };
     return newUser;
   }
-
 }
