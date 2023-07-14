@@ -1,48 +1,30 @@
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, Callback } from 'aws-lambda';
+import { configure as serverlessExpress } from '@vendia/serverless-express';
 import { NestFactory } from '@nestjs/core';
-import { Context, APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
-let cachedApp: any;
+let server: any;
 
 async function bootstrap(): Promise<any> {
-  if (!cachedApp) {
-    const app = await NestFactory.create(AppModule);
-    await app.init();
-    cachedApp = app.getHttpAdapter().getInstance();
-  }
-  return cachedApp;
+  const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: (req, callback) => callback(null, true),
+  });
+  app.use(helmet());
+
+  await app.init();
+  return app.getHttpAdapter().getInstance();
 }
 
 export const handler = async (
   event: APIGatewayProxyEvent,
-  context: Context
+  context: Context,
+  callback: Callback,
 ): Promise<APIGatewayProxyResult> => {
-  const app = await bootstrap();
-  const proxyEvent = {
-    ...event,
-    requestContext: {
-      ...event.requestContext,
-      requestId: context.awsRequestId,
-    },
-  };
-
-  const result = await new Promise<APIGatewayProxyResult>((resolve, reject) => {
-    app.handle(proxyEvent, null, (err: any, response: any) => {
-      if (err) {
-        reject(err);
-      } else {
-        const statusCode = response?.statusCode;
-        const body = response?.body;
-        const headers = response?.headers;
-
-        resolve({
-          statusCode,
-          body,
-          headers,
-        });
-      }
-    });
-  });
-
-  return result;
+  if (!server) {
+    const app = await bootstrap();
+    server = serverlessExpress({ app });
+  }
+  return server(event, context, callback);
 };
