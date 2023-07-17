@@ -28,7 +28,7 @@ export class AppController {
     };
   }
 
-  @UseGuards(BasicAuthGuard)
+  // @UseGuards(BasicAuthGuard)
   @Get('api/profile')
   async getProfile(@Request() req) {
     return {

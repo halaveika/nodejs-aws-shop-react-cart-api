@@ -1,0 +1,32 @@
+{
+  "name": "layer_cart_api_lambda",
+  "version": "1.0.0",
+  "description": "layer for cart api lambda",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.3",
+    "@nestjs/config": "^3.0.0",
+    "@nestjs/core": "^10.0.5",
+    "@nestjs/jwt": "^10.1.0",
+    "@nestjs/passport": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.3",
+    "@vendia/serverless-express": "^4.10.4",
+    "archiver": "^5.3.1",
+    "aws-lambda": "^1.0.7",
+    "helmet": "^7.0.0",
+    "passport": "^0.6.0",
+    "passport-http": "^0.3.0",
+    "passport-jwt": "^4.0.1",
+    "passport-local": "^1.0.0",
+    "pg": "^8.11.1",
+    "reflect-metadata": "^0.1.13",
+    "rs-checkout-api": "file:..",
+    "rxjs": "^7.8.1",
+    "uuid": "^9.0.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
