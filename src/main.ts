@@ -7,6 +7,8 @@ import { AppModule } from './app.module';
 
 let server: any;
 
+const port = process.env.PORT || 4000;
+
 async function bootstrap(): Promise<any> {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
@@ -32,3 +34,11 @@ export const handler = async (
   }
   return server(event, context, callback);
 };
+
+if (!process.env.AWS_EXECUTION_ENV) {
+  (async () => {
+    const app = await bootstrap();
+    await app.listen(port);
+    console.log('App is running on port', port);
+  })();
+}

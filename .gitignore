@@ -41,3 +41,4 @@ lerna-debug.log*
 /layer/*.zip
 .env
 /cdk/.env
+/.ebextensions

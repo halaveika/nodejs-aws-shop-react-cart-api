@@ -1,4 +1,5 @@
-FROM node:16-alpine AS builder
+# Build Stage
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -10,16 +11,17 @@ COPY . .
 
 RUN npm run build
 
-FROM node:16-alpine 
+# Production Stage
+FROM node:18-alpine 
 
 WORKDIR /app
 
-COPY --from=builder app/package.json app/package-lock.json ./
+COPY package.json package-lock.json ./
 
-RUN npm ci
+RUN npm ci --production
 
-COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/dist ./dist
 
 EXPOSE 4000
 
-CMD [ "npm", "run", "start:prod" ]
+CMD ["node", "dist/main.js"]
