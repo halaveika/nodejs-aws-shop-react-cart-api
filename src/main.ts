@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, Callback } from '
 import { configure as serverlessExpress } from '@vendia/serverless-express';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
+import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 let server: any;
@@ -12,6 +13,9 @@ async function bootstrap(): Promise<any> {
     origin: (req, callback) => callback(null, true),
   });
   app.use(helmet());
+
+  const logger = new Logger('Bootstrap');
+  logger.log('Server starting...');
 
   await app.init();
   return app.getHttpAdapter().getInstance();

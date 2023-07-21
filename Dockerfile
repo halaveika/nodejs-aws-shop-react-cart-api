@@ -1,6 +1,6 @@
-FROM node:current-alpine3.18 AS builder
+FROM node:16-alpine AS builder
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY package.json package-lock.json ./
 
@@ -10,12 +10,16 @@ COPY . .
 
 RUN npm run build
 
-FROM node:current-alpine3.18 
+FROM node:16-alpine 
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder app/package.json app/package-lock.json ./
+
+RUN npm ci
+
+COPY --from=builder /app/dist /app/dist
 
 EXPOSE 4000
 
-CMD ["npm", "run", "start:prod"]
+CMD [ "npm", "run", "start:prod" ]
