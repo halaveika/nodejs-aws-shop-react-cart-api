@@ -24,6 +24,7 @@ export class CartStack extends cdk.Stack {
         PG_DB_DATABASE: process.env.PG_DB_DATABASE || '',
         PG_DB_PASSWORD: process.env.PG_DB_PASSWORD || '',
         PG_DB_PORT: process.env.PG_DB_PORT || '5432',
+        AWS_EXECUTION_ENV: process.env.AWS_EXECUTION_ENV || '',
       },
     };
 

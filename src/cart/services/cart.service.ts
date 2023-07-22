@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Client } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
 import { Cart, CartItem } from '../models';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 @Injectable()
 export class CartService {
